@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { matchedData } = require('express-validator');
 const User = require('../models/User');
 const Session = require('../models/Session');
 const asyncHandler = require('../utils/asyncHandler');
@@ -23,7 +24,7 @@ const sanitizeUser = (user) => ({
 });
 
 exports.register = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password } = matchedData(req, { locations: ['body'] });
 
   const exists = await User.findOne({ email });
   if (exists) return res.status(409).json({ success: false, message: 'Email already in use' });
@@ -44,7 +45,7 @@ exports.register = asyncHandler(async (req, res) => {
 });
 
 exports.login = asyncHandler(async (req, res) => {
-  const { email, password, rememberMe } = req.body;
+  const { email, password, rememberMe } = matchedData(req, { locations: ['body'] });
 
   const user = await User.findOne({ email }).select('+password');
   if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -93,7 +94,7 @@ exports.getCsrfToken = asyncHandler(async (req, res) => {
 });
 
 exports.forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+  const { email } = matchedData(req, { locations: ['body'] });
   const user = await User.findOne({ email });
   if (!user) {
     return res.json({ success: true, message: 'If account exists, reset instructions generated.' });
@@ -112,7 +113,7 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
 });
 
 exports.changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword } = matchedData(req, { locations: ['body'] });
   const user = await User.findById(req.user._id).select('+password');
 
   const isMatch = await user.comparePassword(oldPassword);
@@ -125,7 +126,7 @@ exports.changePassword = asyncHandler(async (req, res) => {
 });
 
 exports.resetPassword = asyncHandler(async (req, res) => {
-  const { token, newPassword } = req.body;
+  const { token, newPassword } = matchedData(req, { locations: ['body'] });
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
   const user = await User.findOne({

@@ -18,6 +18,7 @@ const registerValidation = [
 const loginValidation = [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 8 }),
+  body('rememberMe').optional().isBoolean(),
   validate,
 ];
 
